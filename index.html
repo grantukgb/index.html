@@ -2,37 +2,160 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Mawdsley Scans Download</title>
+  <title>Mawdsley Scans App</title>
+  <style>
+    body { font-family: Arial; margin: 2em; }
+    #scans-list { margin: 1em 0; }
+    #scans-list td, #scans-list th { padding: .4em; border-bottom: 1px solid #ddd; }
+    #scans-list th { text-align: left; background: #f9f9f9; }
+    .delete-btn { color: red; cursor: pointer; }
+    #reader { width: 320px; margin: 1em 0; }
+  </style>
+  <!-- html5-qrcode: for camera support -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
+  <h1>Mawdsley Scans</h1>
+
+  <!-- Data Entry Form -->
+  <form id="entry-form" autocomplete="off">
+    <label>
+      Code:
+      <input type="text" id="code" required>
+    </label>
+    <label>
+      Hospital:
+      <input type="text" id="hospital" required>
+    </label>
+    <label>
+      Type:
+      <input type="text" id="type" required>
+    </label>
+    <button type="submit">Add</button>
+    <button type="button" onclick="toggleScanner()">Scan QR</button>
+  </form>
+
+  <!-- Camera QR/Barcode Scanner -->
+  <div id="reader" style="display:none"></div>
+
   <button onclick="downloadCSV()">Download CSV</button>
 
-  <script>
-    function downloadCSV() {
-      const data = JSON.parse(localStorage.getItem('mawdsley_scans') || '[]');
-      if (!data.length) {
-        alert('No scan data available for download.');
-        return;
-      }
+  <!-- Scans List -->
+  <h2>Scans</h2>
+  <table id="scans-list">
+    <thead>
+      <tr>
+        <th>Code</th><th>Hospital</th><th>Type</th><th>Time</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
 
-      const header = "code,hospital,type,time\n";
-      const rows = data
-        .map(i => `${i.code},${i.hospital},${i.type},${i.time}`)
-        .join("\n");
+<script>
+const storageKey = "mawdsley_scans";
 
-      const csv = header + rows;
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
+function getScans() {
+  return JSON.parse(localStorage.getItem(storageKey) || "[]");
+}
+function saveScans(scans) {
+  localStorage.setItem(storageKey, JSON.stringify(scans));
+}
+function renderList() {
+  const scans = getScans();
+  const tbody = document.querySelector("#scans-list tbody");
+  tbody.innerHTML = "";
+  scans.forEach((item, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.code}</td>
+      <td>${item.hospital}</td>
+      <td>${item.type}</td>
+      <td>${item.time}</td>
+      <td><span class="delete-btn" onclick="deleteScan(${idx})">Delete</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+function deleteScan(idx) {
+  const scans = getScans();
+  scans.splice(idx, 1);
+  saveScans(scans);
+  renderList();
+}
+function addScan(code, hospital, type) {
+  const scans = getScans();
+  scans.push({
+    code,
+    hospital,
+    type,
+    time: new Date().toISOString().replace("T", " ").substring(0, 16)
+  });
+  saveScans(scans);
+  renderList();
+}
+document.getElementById("entry-form").onsubmit = function(e) {
+  e.preventDefault();
+  addScan(
+    document.getElementById("code").value,
+    document.getElementById("hospital").value,
+    document.getElementById("type").value
+  );
+  this.reset();
+};
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'mawdsley_scans.csv';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  </script>
+function downloadCSV() {
+  const data = getScans();
+  if (!data.length) {
+    alert('No scan data available for download.');
+    return;
+  }
+  const header = "code,hospital,type,time\n";
+  const rows = data
+    .map(i => `${i.code},${i.hospital},${i.type},${i.time}`)
+    .join("\n");
+  const csv = header + rows;
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mawdsley_scans.csv';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
+}
+
+// QR/Barcode scanner support
+let scanner = null;
+function toggleScanner() {
+  const el = document.getElementById("reader");
+  if (el.style.display === "none") {
+    el.style.display = "block";
+    startScanner();
+  } else {
+    el.style.display = "none";
+    if (scanner) scanner.stop();
+  }
+}
+function startScanner() {
+  scanner = new Html5Qrcode("reader");
+  scanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    qrCodeMessage => {
+      document.getElementById("code").value = qrCodeMessage;
+      toggleScanner();
+    },
+    error => { /* Ignore errors for now */ }
+  ).catch(() => { alert('Camera not available or permission denied.'); });
+}
+
+window.onload = renderList;
+</script>
 </body>
 </html>

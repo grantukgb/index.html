@@ -2,58 +2,275 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Mawdsley Scans App</title>
+  <title>Mawdsley Scans • Barcode App</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-pY1YdxNAxF0qB+nzH8Kz7PxbDR2PKisG3lZqJC6crfCvCT/vg6JhLLfyPIzsztBmAj++qWrrrYWT2w5jAhpseA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
-    body { font-family: Arial; margin: 2em; }
-    #scans-list { margin: 1em 0; }
-    #scans-list td, #scans-list th { padding: .4em; border-bottom: 1px solid #ddd; }
-    #scans-list th { text-align: left; background: #f9f9f9; }
-    .delete-btn { color: red; cursor: pointer; }
-    #reader { width: 320px; margin: 1em 0; }
+    :root {
+      --main: #09579a;
+      --main-light: #eaf3fb;
+      --main-bg: #f0f6fa;
+      --accent: #fbb040;
+      --success: #059142;
+      --danger: #d12b2c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--main-bg);
+      margin: 0; padding: 0;
+      min-height: 100vh;
+      color: #123;
+    }
+    .container {
+      margin: 2em auto;
+      max-width: 500px;
+      background: #fff;
+      border-radius: 1.5em;
+      box-shadow: 0 2px 12px #0001;
+      padding: 2em 1.5em 1.5em 1.5em;
+    }
+    h1 {
+      text-align: center;
+      color: var(--main);
+      margin-bottom: 1em;
+    }
+    form {
+      display: flex; gap: 0.5em; flex-wrap: wrap;
+      background: var(--main-light);
+      border-radius: 1em;
+      padding: 1em;
+      margin-bottom: 1em;
+      align-items: center;
+      justify-content: space-between;
+    }
+    form label {
+      flex: 1 0 90px;
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+      font-weight: 500;
+    }
+    form input {
+      padding: .6em .7em;
+      border: 1px solid #ccc;
+      border-radius: .5em;
+      margin-left: .3em;
+      width: 85px;
+    }
+    form button {
+      border: none;
+      outline: none;
+      background: var(--main);
+      color: #fff;
+      font-size: 1.1em;
+      border-radius: .6em;
+      padding: .5em 1.3em;
+      cursor: pointer;
+      transition: background .15s;
+      margin-right: .2em;
+      margin-top: .5em;
+      display: flex;
+      align-items: center;
+      gap: .7em;
+    }
+    form button[type=button] {
+      background: var(--accent);
+      color: #222;
+    }
+    form button:hover {
+      background: #027acb;
+    }
+    form button[type=button]:hover {
+      background: #fcae06;
+    }
+    #downloadBtn {
+      width: 100%;
+      margin: 1em 0 0 0;
+      font-size: 1.1em;
+      letter-spacing: 1px;
+      background: var(--success);
+      color: #fff;
+      padding: .8em 0;
+      border-radius: 1em;
+      border: 0;
+      cursor: pointer;
+      transition: background .17s;
+      display: flex;
+      align-items: center;
+      gap: .7em;
+      justify-content: center;
+    }
+    #downloadBtn:hover {
+      background: #23bf67;
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+      background: #f8fafc;
+      border-radius:1em;
+      overflow: hidden;
+      margin-top: .5em;
+    }
+    th, td {
+      text-align: left;
+      padding: .7em .6em;
+      font-size: 1em;
+    }
+    th { background: #f0f4fa; color: var(--main); }
+    tr:nth-child(even) { background: #f6fafd; }
+    .delete-btn {
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1.2em;
+      background: none;
+      border: none;
+      padding: .5em;
+      border-radius: 50%;
+      transition: background .1s;
+    }
+    .delete-btn:hover {
+      background: #ffd3d3;
+    }
+    .scanner-overlay {
+      position: fixed;
+      top:0;left:0;right:0;bottom:0;
+      background: #07376b90;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+    }
+    #barcode-scanner {
+      background: #333;
+      border-radius: 1.1em;
+      overflow: hidden;
+      width: 320px; max-width: 90vw;
+      margin-bottom: 1em;
+      box-shadow: 0 3px 12px #0005;
+      position:relative;
+    }
+    .scanner-close {
+      background: #fff;
+      color: var(--main);
+      border: none;
+      font-size: 1.4em;
+      border-radius: 50%;
+      width: 2.2em; height: 2.2em;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 4px #0003;
+      cursor:pointer;
+      margin-top: 0.5em;
+      transition: background .18s;
+    }
+    .scanner-close:hover { background: #f8f2f2; }
+    .scanner-flash {
+      position: absolute;
+      left:50%;top:50%;transform:translate(-50%,-50%);
+      color: var(--accent); font-size: 2.4em;
+      animation: scanflash 1s infinite linear;
+      z-index: 4;
+      pointer-events: none;
+    }
+    @keyframes scanflash {
+      0% { opacity:0; }
+      50% {opacity:.7;}
+      100% {opacity:0;}
+    }
+    .snackbar {
+      visibility: hidden;
+      min-width: 230px;
+      background: #222f;
+      color: #fff;
+      text-align: center;
+      border-radius: .5em;
+      padding: .8em 1.5em;
+      position: fixed;
+      left: 50%;
+      bottom: 2em;
+      transform: translateX(-50%);
+      font-size: 1.18em;
+      z-index: 11111;
+      transition: visibility 0s, opacity .35s ease;
+      opacity: 0;
+      box-shadow: 0 3px 10px #0003;
+    }
+    .snackbar.show {
+      visibility: visible;
+      opacity: 1;
+    }
+    @media (max-width:550px) {
+      .container { padding: 1.1em 0.5em 1.1em 0.5em;}
+      form label { flex-direction:column; align-items:flex-start; font-size:.93em;}
+      form input { width: 92%; }
+      form button { flex:1 0 auto;width:95%;margin: .2em 0; }
+    }
   </style>
-  <!-- html5-qrcode: for camera support -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
 </head>
 <body>
-  <h1>Mawdsley Scans</h1>
+  <div class="container">
+    <h1><i class="fa-solid fa-barcode"></i> Mawdsley Scans</h1>
+    <form id="entry-form" autocomplete="off">
+      <label>
+        <i class="fa-solid fa-barcode"></i>
+        Code:
+        <input type="text" id="code" required>
+      </label>
+      <label>
+        <i class="fa-solid fa-hospital"></i>
+        Hospital:
+        <input type="text" id="hospital" required>
+      </label>
+      <label>
+        <i class="fa-solid fa-vial"></i>
+        Type:
+        <input type="text" id="type" required>
+      </label>
+      <button type="submit">
+        <i class="fa-solid fa-plus"></i>Add
+      </button>
+      <button type="button" onclick="toggleBarcodeScanner()">
+        <i class="fa-solid fa-camera"></i>Scan
+      </button>
+    </form>
+    <button id="downloadBtn" onclick="downloadCSV()">
+      <i class="fa-solid fa-file-csv"></i> Download CSV
+    </button>
 
-  <!-- Data Entry Form -->
-  <form id="entry-form" autocomplete="off">
-    <label>
-      Code:
-      <input type="text" id="code" required>
-    </label>
-    <label>
-      Hospital:
-      <input type="text" id="hospital" required>
-    </label>
-    <label>
-      Type:
-      <input type="text" id="type" required>
-    </label>
-    <button type="submit">Add</button>
-    <button type="button" onclick="toggleScanner()">Scan QR</button>
-  </form>
+    <h2 style="margin:1.5em 0 .4em 0;color:var(--main);font-size:1.2em;">Scanned Items</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th><th>Hospital</th><th>Type</th><th>Time</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="scans-list">
+      </tbody>
+    </table>
+  </div>
 
-  <!-- Camera QR/Barcode Scanner -->
-  <div id="reader" style="display:none"></div>
+  <!-- Barcode Scanner Overlay -->
+  <div id="scannerOverlay" class="scanner-overlay" style="display:none">
+    <div id="barcode-scanner">
+      <div class="scanner-flash"><i class="fa-solid fa-barcode"></i></div>
+    </div>
+    <button class="scanner-close" onclick="toggleBarcodeScanner()" title="Close"><i class="fa-solid fa-times"></i></button>
+    <span style="color:#fff; margin-top:.7em;">Aim barcode inside box</span>
+  </div>
 
-  <button onclick="downloadCSV()">Download CSV</button>
-
-  <!-- Scans List -->
-  <h2>Scans</h2>
-  <table id="scans-list">
-    <thead>
-      <tr>
-        <th>Code</th><th>Hospital</th><th>Type</th><th>Time</th><th></th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
+  <div id="snackbar" class="snackbar"></div>
 
 <script>
 const storageKey = "mawdsley_scans";
+function showSnackbar(msg, color='#222') {
+  const el = document.getElementById("snackbar");
+  el.textContent = msg;
+  el.style.background = color;
+  el.className = 'snackbar show';
+  setTimeout(() => el.classList.remove('show'), 1850);
+}
 
 function getScans() {
   return JSON.parse(localStorage.getItem(storageKey) || "[]");
@@ -63,8 +280,12 @@ function saveScans(scans) {
 }
 function renderList() {
   const scans = getScans();
-  const tbody = document.querySelector("#scans-list tbody");
+  const tbody = document.getElementById("scans-list");
   tbody.innerHTML = "";
+  if (!scans.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:#aaa;text-align:center;padding:1.5em;">No scans yet</td></tr>`;
+    return;
+  }
   scans.forEach((item, idx) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -72,16 +293,22 @@ function renderList() {
       <td>${item.hospital}</td>
       <td>${item.type}</td>
       <td>${item.time}</td>
-      <td><span class="delete-btn" onclick="deleteScan(${idx})">Delete</span></td>
+      <td>
+        <button class="delete-btn" title="Delete" onclick="deleteScan(${idx})">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
 }
 function deleteScan(idx) {
   const scans = getScans();
+  const delEntry = scans[idx];
   scans.splice(idx, 1);
   saveScans(scans);
   renderList();
+  showSnackbar(`Deleted: ${delEntry.code}`, "var(--danger)");
 }
 function addScan(code, hospital, type) {
   const scans = getScans();
@@ -93,22 +320,24 @@ function addScan(code, hospital, type) {
   });
   saveScans(scans);
   renderList();
+  showSnackbar('Added!');
 }
 document.getElementById("entry-form").onsubmit = function(e) {
   e.preventDefault();
-  addScan(
-    document.getElementById("code").value,
-    document.getElementById("hospital").value,
-    document.getElementById("type").value
-  );
+  const code = document.getElementById("code").value.trim();
+  const hospital = document.getElementById("hospital").value.trim();
+  const type = document.getElementById("type").value.trim();
+  if (!code || !hospital || !type) {
+    showSnackbar('Please fill all fields.', "var(--danger)"); return;
+  }
+  addScan(code, hospital, type);
   this.reset();
 };
 
 function downloadCSV() {
   const data = getScans();
   if (!data.length) {
-    alert('No scan data available for download.');
-    return;
+    showSnackbar('No data to download.', "var(--danger)"); return;
   }
   const header = "code,hospital,type,time\n";
   const rows = data
@@ -128,31 +357,61 @@ function downloadCSV() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }, 100);
+  showSnackbar('CSV downloaded!', "var(--success)");
 }
 
-// QR/Barcode scanner support
-let scanner = null;
-function toggleScanner() {
-  const el = document.getElementById("reader");
-  if (el.style.display === "none") {
-    el.style.display = "block";
-    startScanner();
+// Barcode scanner logic using QuaggaJS
+let isScanning = false;
+function toggleBarcodeScanner() {
+  const overlay = document.getElementById("scannerOverlay");
+  if (!isScanning) {
+    overlay.style.display = "flex";
+    startBarcodeScanner();
   } else {
-    el.style.display = "none";
-    if (scanner) scanner.stop();
+    stopBarcodeScanner();
   }
 }
-function startScanner() {
-  scanner = new Html5Qrcode("reader");
-  scanner.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    qrCodeMessage => {
-      document.getElementById("code").value = qrCodeMessage;
-      toggleScanner();
+function startBarcodeScanner() {
+  if (isScanning) return;
+  isScanning = true;
+  Quagga.init({
+    inputStream: {
+      type : "LiveStream",
+      target: document.getElementById('barcode-scanner'),
+      constraints: { facingMode: "environment", aspectRatio: { min: 1, max: 2 } },
+      area: { top: "15%", right: "15%", left: "15%", bottom: "15%" }
     },
-    error => { /* Ignore errors for now */ }
-  ).catch(() => { alert('Camera not available or permission denied.'); });
+    decoder: {
+      readers: [
+        "ean_reader", "ean_8_reader", "code_128_reader",
+        "upc_reader", "upc_e_reader", "code_39_reader"
+      ]
+    },
+    locate: true
+  }, function(err) {
+      if (err) {
+        showSnackbar('Camera error: ' + err, "var(--danger)");
+        isScanning = false;
+        document.getElementById("scannerOverlay").style.display = "none";
+        return;
+      }
+      Quagga.start();
+  });
+
+  Quagga.onDetected(onBarcodeDetected);
+}
+function stopBarcodeScanner() {
+  isScanning = false;
+  Quagga.offDetected(onBarcodeDetected);
+  Quagga.stop();
+  document.getElementById("scannerOverlay").style.display = "none";
+}
+function onBarcodeDetected(data) {
+  if (data && data.codeResult && data.codeResult.code) {
+    document.getElementById("code").value = data.codeResult.code;
+    showSnackbar('Barcode Scanned!', "var(--accent)");
+    stopBarcodeScanner();
+  }
 }
 
 window.onload = renderList;

@@ -5,9 +5,7 @@
   <title>Mawdsley Scans • Barcode App</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    integrity="sha512-pY1YdxNAxF0qB+nzH8Kz7PxbDR2PKisG3lZqJC6crfCvCT/vg6JhLLfyPIzsztBmAj++qWrrrYWT2w5jAhpseA=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     :root {
       --main: #09579a;
@@ -216,17 +214,17 @@
       <label>
         <i class="fa-solid fa-barcode"></i>
         Code:
-        <input type="text" id="code" required>
+        <input type="text" id="code">
       </label>
       <label>
         <i class="fa-solid fa-hospital"></i>
         Hospital:
-        <input type="text" id="hospital" required>
+        <input type="text" id="hospital">
       </label>
       <label>
         <i class="fa-solid fa-vial"></i>
         Type:
-        <input type="text" id="type" required>
+        <input type="text" id="type">
       </label>
       <button type="submit">
         <i class="fa-solid fa-plus"></i>Add
@@ -289,9 +287,9 @@ function renderList() {
   scans.forEach((item, idx) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${item.code}</td>
-      <td>${item.hospital}</td>
-      <td>${item.type}</td>
+      <td>${item.code || ''}</td>
+      <td>${item.hospital || ''}</td>
+      <td>${item.type || ''}</td>
       <td>${item.time}</td>
       <td>
         <button class="delete-btn" title="Delete" onclick="deleteScan(${idx})">
@@ -308,7 +306,7 @@ function deleteScan(idx) {
   scans.splice(idx, 1);
   saveScans(scans);
   renderList();
-  showSnackbar(`Deleted: ${delEntry.code}`, "var(--danger)");
+  showSnackbar(`Deleted!`, "var(--danger)");
 }
 function addScan(code, hospital, type) {
   const scans = getScans();
@@ -324,12 +322,10 @@ function addScan(code, hospital, type) {
 }
 document.getElementById("entry-form").onsubmit = function(e) {
   e.preventDefault();
-  const code = document.getElementById("code").value.trim();
-  const hospital = document.getElementById("hospital").value.trim();
-  const type = document.getElementById("type").value.trim();
-  if (!code || !hospital || !type) {
-    showSnackbar('Please fill all fields.', "var(--danger)"); return;
-  }
+  const code = document.getElementById("code").value;
+  const hospital = document.getElementById("hospital").value;
+  const type = document.getElementById("type").value;
+  // ALL FIELDS OPTIONAL
   addScan(code, hospital, type);
   this.reset();
 };
@@ -341,7 +337,7 @@ function downloadCSV() {
   }
   const header = "code,hospital,type,time\n";
   const rows = data
-    .map(i => `${i.code},${i.hospital},${i.type},${i.time}`)
+    .map(i => `${i.code||''},${i.hospital||''},${i.type||''},${i.time}`)
     .join("\n");
   const csv = header + rows;
   const blob = new Blob([csv], { type: 'text/csv' });

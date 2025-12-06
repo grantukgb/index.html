@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grants Routes</title>
+  <style>
+    :root {
+      --blue-900: #0b2f5b;
+      --blue-700: #185bb6;
+      --blue-500: #1e7bd7;
+      --blue-200: #d6e9ff;
+      --gray-50: #f7f9fc;
+      --shadow: 0 8px 20px rgba(11, 47, 91, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, var(--gray-50), var(--blue-200));
+      color: var(--blue-900);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    header {
+      width: min(960px, 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      margin: 0 auto 1.25rem;
+      border-radius: 18px;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 2vw + 1rem, 2.25rem);
+      margin: 0;
+      color: var(--blue-900);
+      letter-spacing: 0.02em;
+    }
+
+    .theme-pill {
+      background: var(--blue-200);
+      color: var(--blue-900);
+      padding: 0.5rem 0.75rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid rgba(11, 47, 91, 0.1);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    main {
+      width: min(960px, 100%);
+      display: grid;
+      gap: 1rem;
+    }
+
+    .routes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .route-card {
+      background: linear-gradient(160deg, var(--blue-700), var(--blue-500));
+      border-radius: 18px;
+      padding: 1.25rem;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-height: 140px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+
+    .route-card:hover,
+    .route-card:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(11, 47, 91, 0.3);
+      outline: none;
+      filter: brightness(1.05);
+    }
+
+    .route-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .route-subtitle {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .stops-panel {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(11, 47, 91, 0.05);
+      display: none;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .stops-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stops-title {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--blue-900);
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--blue-700);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      padding: 0.35rem 0.6rem;
+      border-radius: 8px;
+      transition: background 0.15s ease;
+    }
+
+    .close-btn:hover,
+    .close-btn:focus-visible {
+      background: var(--blue-200);
+      outline: none;
+    }
+
+    .stop-button {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid rgba(24, 91, 182, 0.25);
+      color: var(--blue-900);
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: left;
+      box-shadow: 0 10px 18px rgba(11, 47, 91, 0.12);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    }
+
+    .stop-button:hover,
+    .stop-button:focus-visible {
+      background: var(--blue-200);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(11, 47, 91, 0.18);
+      outline: none;
+    }
+
+    .empty-state {
+      color: rgba(11, 47, 91, 0.8);
+      font-size: 0.95rem;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      header {
+        padding: 0.9rem 1rem;
+      }
+
+      .route-card {
+        min-height: 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Grants Routes</h1>
+    <span class="theme-pill">Blue theme</span>
+  </header>
+
+  <main>
+    <section class="routes-grid" aria-label="Available routes">
+      <article class="route-card" tabindex="0" data-route-id="route-9">
+        <span class="route-title">Route 9</span>
+        <span class="route-subtitle">Tap to view stops</span>
+      </article>
+      <article class="route-card" tabindex="0" data-route-id="route-26">
+        <span class="route-title">Route 26</span>
+        <span class="route-subtitle">Tap to view stops</span>
+      </article>
+    </section>
+
+    <section id="stops" class="stops-panel" aria-live="polite">
+      <div class="stops-header">
+        <h2 class="stops-title" id="stopsTitle">Stops</h2>
+        <button class="close-btn" type="button" aria-label="Close stops list">Close</button>
+      </div>
+      <div id="stopsList" class="stops-list"></div>
+    </section>
+  </main>
+
+  <script>
+    const routes = {
+      'route-9': {
+        name: 'Route 9',
+        stops: [
+          {
+            id: 'm3806',
+            name: 'M3806 Central Middlesex Hospital',
+            link: 'https://maps.app.goo.gl/DAwcruEFsCyYChyA8?g_st=ic'
+          }
+        ]
+      },
+      'route-26': {
+        name: 'Route 26',
+        stops: [
+          {
+            id: 'cheltenham-general-hospital',
+            name: 'Cheltenham General Hospital',
+            link: 'https://maps.app.goo.gl/pvFH81iZYH4DKtBV9?g_st=ic'
+          },
+          {
+            id: 'worcestershire-royal-hospital',
+            name: 'Worcestershire Royal Hospital',
+            link: 'https://maps.app.goo.gl/ANSWeXLEdmPczWzBA?g_st=ic'
+          },
+          {
+            id: 'gloucestershire-royal-hospital',
+            name: 'Gloucestershire Royal Hospital',
+            link: 'https://maps.app.goo.gl/oHAMN1TUDtH9CeWL8?g_st=ic'
+          },
+          {
+            id: 'hereford-county-hospital',
+            name: 'Hereford County Hospital',
+            link: 'https://maps.app.goo.gl/gdisZLtsJYC73jXL6?g_st=ic'
+          },
+          {
+            id: 'prince-charles-hospital',
+            name: 'Prince Charles Hospital',
+            link: 'https://maps.app.goo.gl/8F4gRz6t7a2z28XMA?g_st=ic'
+          }
+        ]
+      }
+    };
+
+    const routeCards = document.querySelectorAll('.route-card');
+    const stopsPanel = document.getElementById('stops');
+    const stopsTitle = document.getElementById('stopsTitle');
+    const stopsList = document.getElementById('stopsList');
+    const closeBtn = document.querySelector('.close-btn');
+
+    const renderStops = (route) => {
+      stopsTitle.textContent = `${route.name} stops`;
+      stopsList.innerHTML = '';
+
+      if (!route.stops || !route.stops.length) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = 'No stops available for this route yet.';
+        stopsList.appendChild(empty);
+        return;
+      }
+
+      route.stops.forEach((stop) => {
+        const button = document.createElement('button');
+        button.className = 'stop-button';
+        button.type = 'button';
+        button.textContent = stop.name;
+        button.addEventListener('click', () => {
+          window.open(stop.link, '_blank', 'noopener');
+        });
+        stopsList.appendChild(button);
+      });
+    };
+
+    const openStops = (routeId) => {
+      const route = routes[routeId];
+      if (!route) return;
+      renderStops(route);
+      stopsPanel.style.display = 'flex';
+      stopsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const closeStops = () => {
+      stopsPanel.style.display = 'none';
+      stopsList.innerHTML = '';
+    };
+
+    closeBtn.addEventListener('click', closeStops);
+
+    routeCards.forEach((card) => {
+      const routeId = card.dataset.routeId;
+      card.addEventListener('click', () => openStops(routeId));
+      card.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openStops(routeId);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

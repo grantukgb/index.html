@@ -203,6 +203,10 @@
 
   <main>
     <section class="routes-grid" aria-label="Available routes">
+      <article class="route-card" tabindex="0" data-route-id="route-2">
+        <span class="route-title">Route 2</span>
+        <span class="route-subtitle">Tap to view stops</span>
+      </article>
       <article class="route-card" tabindex="0" data-route-id="route-9">
         <span class="route-title">Route 9</span>
         <span class="route-subtitle">Tap to view stops</span>
@@ -220,6 +224,41 @@
 
   <script>
     const routes = {
+      'route-2': {
+        name: 'Route 2',
+        stops: [
+          {
+            id: 'm3633-m3631',
+            name: 'M3633 & M3631',
+            link: 'https://maps.app.goo.gl/S448BoSKEe51ijncA?g_st=ic'
+          },
+          {
+            id: 'm3083',
+            name: 'M3083',
+            link: 'https://maps.app.goo.gl/evNXvohzropBjzXY8?g_st=ic'
+          },
+          {
+            id: 'm3610',
+            name: 'M3610',
+            link: 'https://maps.app.goo.gl/3aXHenhMBmnbyuX27?g_st=ic'
+          },
+          {
+            id: 'm3064',
+            name: 'M3064',
+            link: 'https://maps.app.goo.gl/nfy1jr4V3AHUo4iA7?g_st=ic'
+          },
+          {
+            id: 'm3055-m3329',
+            name: 'M3055 & M3329',
+            link: 'https://maps.app.goo.gl/MzTWfNpJNcrxmsMu5?g_st=ic'
+          },
+          {
+            id: 'm3906-3844',
+            name: 'M3906 & 3844',
+            link: 'https://maps.app.goo.gl/tHWURW8amxwKV5zC7?g_st=ic'
+          }
+        ]
+      },
       'route-9': {
         name: 'Route 9',
         stops: [

@@ -203,6 +203,10 @@
 
   <main>
     <section class="routes-grid" aria-label="Available routes">
+      <article class="route-card" tabindex="0" data-route-id="route-2">
+        <span class="route-title">Route 2</span>
+        <span class="route-subtitle">Tap to view stops</span>
+      </article>
       <article class="route-card" tabindex="0" data-route-id="route-9">
         <span class="route-title">Route 9</span>
         <span class="route-subtitle">Tap to view stops</span>
@@ -224,6 +228,10 @@
 
   <script>
     const routes = {
+      'route-2': {
+        name: 'Route 2',
+        stops: []
+      },
       'route-9': {
         name: 'Route 9',
         stops: [
